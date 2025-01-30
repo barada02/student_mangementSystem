@@ -171,3 +171,27 @@
     font-size: 0.8em;
     color: #666;
 }
+
+/* Loading and error states */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    color: #666;
+    font-size: 1.2em;
+}
+
+.loading i {
+    margin-right: 10px;
+    color: #3498db;
+}
+
+.error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    margin: 20px 0;
+}

@@ -1,0 +1,49 @@
+<div class="page-header">
+    <h1><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h1>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <i class="fas fa-user-graduate"></i>
+        <div class="stat-info">
+            <h3>Total Students</h3>
+            <p>{{ stats.total_students }}</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-book"></i>
+        <div class="stat-info">
+            <h3>Total Courses</h3>
+            <p>{{ stats.total_courses }}</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-user-plus"></i>
+        <div class="stat-info">
+            <h3>New Enrollments</h3>
+            <p>{{ stats.new_enrollments }}</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-graduation-cap"></i>
+        <div class="stat-info">
+            <h3>Graduating Soon</h3>
+            <p>{{ stats.graduating_soon }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="recent-activity">
+    <h2><i class="fas fa-clock"></i> Recent Activity</h2>
+    <div class="activity-list">
+        {% for activity in activities %}
+        <div class="activity-item">
+            <i class="{{ activity.icon }}"></i>
+            <div class="activity-info">
+                <p>{{ activity.description }}</p>
+                <span>{{ activity.time }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>

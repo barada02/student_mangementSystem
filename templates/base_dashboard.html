@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard - Student Management System{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/enrollment.css">
+    {% block extra_css %}{% endblock %}
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <nav class="dashboard-nav">
+        <div class="container">
+            <div class="nav-left">
+                <div class="logo">Student Management System</div>
+            </div>
+            <div class="nav-right">
+                <span class="user-name">Welcome, {{ name }}</span>
+                <a href="/logout" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <ul class="menu">
+                <li data-page="dashboard"><a href="#" onclick="loadPage('dashboard')"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li data-page="students"><a href="#" onclick="loadPage('students')"><i class="fas fa-user-graduate"></i> Students</a></li>
+                <li data-page="courses"><a href="#" onclick="loadPage('courses')"><i class="fas fa-book"></i> Courses</a></li>
+                <li data-page="enrollment"><a href="#" onclick="loadPage('enrollment')"><i class="fas fa-user-plus"></i> Enrollment</a></li>
+                <li data-page="settings"><a href="#" onclick="loadPage('settings')"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+        </aside>
+        
+        <main class="main-content" id="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function loadPage(page) {
+            // Update active menu item
+            document.querySelectorAll('.menu li').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+
+            // Show loading indicator
+            document.getElementById('main-content').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+
+            // Load content
+            fetch(`/dashboard/${page}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('main-content').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('main-content').innerHTML = '<div class="error">Error loading content</div>';
+                });
+
+            // Update URL without page reload
+            history.pushState({page: page}, '', `/dashboard/${page}`);
+        }
+
+        // Handle browser back/forward buttons
+        window.onpopstate = function(event) {
+            if (event.state && event.state.page) {
+                loadPage(event.state.page);
+            }
+        };
+
+        // Load default page
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPage = window.location.pathname.split('/').pop() || 'dashboard';
+            loadPage(currentPage);
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
