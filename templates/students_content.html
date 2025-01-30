@@ -1,0 +1,204 @@
+<div class="page-header">
+    <h1><i class="fas fa-user-graduate"></i> Student Management</h1>
+    <button class="btn btn-primary" onclick="toggleEnrollmentForm()">
+        <i class="fas fa-user-plus"></i> Add New Student
+    </button>
+</div>
+
+<!-- Enrollment Form Section -->
+<div class="enrollment-form-container" id="enrollmentForm" style="display: none;">
+    <div class="section-header">
+        <h2><i class="fas fa-user-plus"></i> New Student Enrollment</h2>
+        <button class="btn btn-secondary" onclick="toggleEnrollmentForm()">
+            <i class="fas fa-times"></i> Close
+        </button>
+    </div>
+    <form action="/enroll_student" method="post" class="enrollment-form" id="studentForm">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" name="dob" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="">Select Category</option>
+                    <option value="Undergraduate">Undergraduate</option>
+                    <option value="Postgraduate">Postgraduate</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="enrollment_year">Enrollment Year</label>
+                <input type="number" id="enrollment_year" name="enrollment_year" 
+                       min="2000" max="2099" step="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="expected_leave_year">Expected Leave Year</label>
+                <input type="number" id="expected_leave_year" name="expected_leave_year" 
+                       min="2000" max="2099" step="1" required>
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="special_id">Special Identification</label>
+                <textarea id="special_id" name="special_identification" 
+                        placeholder="Enter any special identification marks"></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Enroll Student
+            </button>
+            <button type="reset" class="btn btn-secondary">
+                <i class="fas fa-undo"></i> Reset Form
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Students List Section -->
+<div class="students-list-container">
+    <div class="section-header">
+        <h2><i class="fas fa-list"></i> Current Students</h2>
+        <div class="search-box">
+            <input type="text" id="studentSearch" placeholder="Search students..." onkeyup="searchStudents()">
+            <i class="fas fa-search"></i>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="students-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Category</th>
+                    <th>Enrollment Year</th>
+                    <th>Expected Leave Year</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="studentsTableBody">
+                {% for student in students %}
+                <tr>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>{{ student.category }}</td>
+                    <td>{{ student.enrollment_year }}</td>
+                    <td>{{ student.expected_leave_year }}</td>
+                    <td class="actions">
+                        <button class="btn-icon" onclick="viewStudent({{ student.id }})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-icon" onclick="editStudent({{ student.id }})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon delete" onclick="deleteStudent({{ student.id }})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function toggleEnrollmentForm() {
+    const form = document.getElementById('enrollmentForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function searchStudents() {
+    const input = document.getElementById('studentSearch');
+    const filter = input.value.toLowerCase();
+    const tbody = document.getElementById('studentsTableBody');
+    const rows = tbody.getElementsByTagName('tr');
+
+    for (let row of rows) {
+        const nameCol = row.getElementsByTagName('td')[0];
+        const emailCol = row.getElementsByTagName('td')[1];
+        if (nameCol && emailCol) {
+            const name = nameCol.textContent || nameCol.innerText;
+            const email = emailCol.textContent || emailCol.innerText;
+            if (name.toLowerCase().indexOf(filter) > -1 || 
+                email.toLowerCase().indexOf(filter) > -1) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    }
+}
+
+function viewStudent(id) {
+    // Implement student view functionality
+    console.log('View student:', id);
+}
+
+function editStudent(id) {
+    // Implement student edit functionality
+    console.log('Edit student:', id);
+}
+
+function deleteStudent(id) {
+    if (confirm('Are you sure you want to delete this student?')) {
+        fetch(`/delete_student/${id}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the row from the table
+                    const row = document.querySelector(`tr[data-id="${id}"]`);
+                    if (row) row.remove();
+                } else {
+                    alert('Error deleting student');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting student');
+            });
+    }
+}
+
+// Form submission handling
+document.getElementById('studentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch('/enroll_student', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Student enrolled successfully!');
+            this.reset();
+            toggleEnrollmentForm();
+            // Reload the students list
+            loadPage('students');
+        } else {
+            alert(data.message || 'Error enrolling student');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error enrolling student');
+    });
+});
+</script>
