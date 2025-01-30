@@ -148,26 +148,17 @@ document.getElementById('studentForm').addEventListener('submit', function(e) {
 
     fetch('/enroll_student', {
         method: 'POST',
-        body: formData
+        body: formData,
+        redirect: 'follow'
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showFlashMessage('Student enrolled successfully!', 'success');
-            this.reset();
-            // Redirect to students list after successful enrollment
-            setTimeout(() => {
-                loadPage('students');
-            }, 2000);
-        } else {
-            showFlashMessage(data.message || 'Error enrolling student', 'error');
+    .then(response => {
+        if (response.redirected) {
+            window.location.href = response.url;
         }
     })
     .catch(error => {
         console.error('Error:', error);
         showFlashMessage('Error enrolling student', 'error');
-    })
-    .finally(() => {
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Enroll Student';
     });

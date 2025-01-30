@@ -202,12 +202,15 @@ def enroll_student():
         conn.commit()
         conn.close()
         
-        return jsonify({'success': True, 'message': 'Student enrolled successfully!'})
+        flash('Student enrolled successfully!', 'success')
+        return redirect(url_for('dashboard_content', page='students'))
         
     except sqlite3.IntegrityError:
-        return jsonify({'success': False, 'message': 'Email already exists!'})
+        flash('Email already exists!', 'error')
+        return redirect(url_for('dashboard_content', page='enrollment'))
     except Exception as e:
-        return jsonify({'success': False, 'message': f'An error occurred: {str(e)}'})
+        flash(f'An error occurred: {str(e)}', 'error')
+        return redirect(url_for('dashboard_content', page='enrollment'))
 
 @app.route('/delete_student/<int:id>', methods=['DELETE'])
 @login_required
