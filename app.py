@@ -132,7 +132,7 @@ def dashboard_content(page):
         return render_template('dashboard_content.html', stats=stats, activities=activities)
         
     elif page == 'students':
-        # Get all students
+        # Get all students for the list view
         conn = sqlite3.connect('student_management.db')
         c = conn.cursor()
         c.execute('''
@@ -154,17 +154,21 @@ def dashboard_content(page):
         conn.close()
         return render_template('students_content.html', students=students)
         
+    elif page == 'enrollment':
+        # Return the enrollment form
+        current_year = datetime.now().year
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        return render_template('enrollment_content.html', 
+                             current_year=current_year,
+                             current_date=current_date)
+        
     elif page == 'courses':
         return "Courses content coming soon"
-        
-    elif page == 'enrollments':
-        return "Enrollments content coming soon"
         
     elif page == 'settings':
         return "Settings content coming soon"
         
-    else:
-        return "Page not found", 404
+    return "Content not found", 404
 
 @app.route('/student_enrollment')
 @login_required

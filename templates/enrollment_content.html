@@ -1,0 +1,182 @@
+<div class="page-header">
+    <h1><i class="fas fa-user-plus"></i> Student Enrollment</h1>
+</div>
+
+<!-- Flash Messages Container -->
+<div id="flashMessages" class="flash-messages"></div>
+
+<!-- Enrollment Form Section -->
+<div class="enrollment-form-container">
+    <form action="/enroll_student" method="post" class="enrollment-form" id="studentForm" onsubmit="return validateForm()">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <input type="text" id="name" name="name" required 
+                       pattern="[A-Za-z\s]+" title="Only letters and spaces allowed"
+                       placeholder="Enter full name">
+                <small class="form-hint">Enter student's full name (letters only)</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" required
+                       placeholder="student@example.com">
+                <small class="form-hint">Enter a valid email address</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="dob">Date of Birth *</label>
+                <input type="date" id="dob" name="dob" required
+                       max="{{ current_date }}" onchange="validateDOB(this)">
+                <small class="form-hint">Student must be at least 15 years old</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="category">Category *</label>
+                <select id="category" name="category" required>
+                    <option value="">Select Category</option>
+                    <option value="Undergraduate">Undergraduate</option>
+                    <option value="Postgraduate">Postgraduate</option>
+                </select>
+                <small class="form-hint">Select student's education level</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="enrollment_year">Enrollment Year *</label>
+                <input type="number" id="enrollment_year" name="enrollment_year" 
+                       min="2000" max="2099" step="1" required
+                       value="{{ current_year }}"
+                       onchange="validateYears()">
+                <small class="form-hint">Year when student joins the institution</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="expected_leave_year">Expected Leave Year *</label>
+                <input type="number" id="expected_leave_year" name="expected_leave_year" 
+                       min="2000" max="2099" step="1" required
+                       onchange="validateYears()">
+                <small class="form-hint">Expected graduation year</small>
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="special_id">Special Identification</label>
+                <textarea id="special_id" name="special_identification" 
+                        placeholder="Enter any special identification marks or notes"
+                        maxlength="500"></textarea>
+                <small class="form-hint">Optional: Add any special identification marks or notes</small>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="fas fa-user-plus"></i> Enroll Student
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                <i class="fas fa-undo"></i> Reset Form
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function showFlashMessage(message, type = 'success') {
+    const flashContainer = document.getElementById('flashMessages');
+    const flash = document.createElement('div');
+    flash.className = `flash ${type}`;
+    flash.innerHTML = message;
+    flashContainer.appendChild(flash);
+    
+    setTimeout(() => {
+        flash.remove();
+    }, 5000);
+}
+
+function validateDOB(input) {
+    const dob = new Date(input.value);
+    const today = new Date();
+    const age = today.getFullYear() - dob.getFullYear();
+    
+    if (age < 15) {
+        input.setCustomValidity('Student must be at least 15 years old');
+        showFlashMessage('Student must be at least 15 years old', 'error');
+    } else {
+        input.setCustomValidity('');
+    }
+}
+
+function validateYears() {
+    const enrollmentYear = parseInt(document.getElementById('enrollment_year').value);
+    const leaveYear = parseInt(document.getElementById('expected_leave_year').value);
+    const leaveYearInput = document.getElementById('expected_leave_year');
+    
+    if (leaveYear < enrollmentYear) {
+        leaveYearInput.setCustomValidity('Leave year must be after enrollment year');
+        showFlashMessage('Leave year must be after enrollment year', 'error');
+    } else if (leaveYear > enrollmentYear + 6) {
+        leaveYearInput.setCustomValidity('Maximum study duration is 6 years');
+        showFlashMessage('Maximum study duration is 6 years', 'error');
+    } else {
+        leaveYearInput.setCustomValidity('');
+    }
+}
+
+function validateForm() {
+    const form = document.getElementById('studentForm');
+    if (!form.checkValidity()) {
+        showFlashMessage('Please fill all required fields correctly', 'error');
+        return false;
+    }
+    return true;
+}
+
+function resetForm() {
+    const form = document.getElementById('studentForm');
+    form.reset();
+    document.getElementById('enrollment_year').value = new Date().getFullYear();
+}
+
+// Form submission handling
+document.getElementById('studentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enrolling...';
+
+    const formData = new FormData(this);
+
+    fetch('/enroll_student', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showFlashMessage('Student enrolled successfully!', 'success');
+            this.reset();
+            // Redirect to students list after successful enrollment
+            setTimeout(() => {
+                loadPage('students');
+            }, 2000);
+        } else {
+            showFlashMessage(data.message || 'Error enrolling student', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showFlashMessage('Error enrolling student', 'error');
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Enroll Student';
+    });
+});
+
+// Initialize form with current year
+document.addEventListener('DOMContentLoaded', function() {
+    const currentYear = new Date().getFullYear();
+    document.getElementById('enrollment_year').value = currentYear;
+    document.getElementById('expected_leave_year').value = currentYear + 4;
+});
+</script>
